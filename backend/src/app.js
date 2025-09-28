@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(cors());
 
 // Ruta Raíz 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.status(200).json({
     message: "¡Bienvenido a la API de Cuerpo Sano!",
     version: "1.0.0",
