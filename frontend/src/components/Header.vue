@@ -1,4 +1,3 @@
-<!-- src/components/Header.vue -->
 <template>
   <header class="header">
     <div class="logo">
@@ -8,31 +7,43 @@
       <p class="subtitle">Sistema de Gestión Integral</p>
     </div>
 
-    <div class="api-status" v-if="apiStatus !== null">
-      <span 
-        class="status-dot" 
-        :class="apiStatus ? 'online' : 'offline'"
-      ></span>
-      <span 
-        class="text" 
-        :class="apiStatus ? 'online-text' : 'offline-text'"
-      >
-        {{ apiStatus ? 'API Conectada' : 'API Desconectada' }}
-      </span>
+    <div class="header-right">
+      <!-- API status -->
+      <div class="api-status" v-if="apiStatus !== null">
+        <span class="status-dot" :class="apiStatus ? 'online' : 'offline'"></span>
+        <span class="text" :class="apiStatus ? 'online-text' : 'offline-text'">
+          {{ apiStatus ? 'API Conectada' : 'API Desconectada' }}
+        </span>
+      </div>
+
+      <!-- Clock -->
+      <span class="chip clock">🕒 {{ hora }}</span>
     </div>
   </header>
 </template>
 
-<script>
-export default {
-  name: 'Header',
-  props: {
-    apiStatus: {
-      type: Boolean,
-      default: null
-    }
+<script setup>
+import { ref, onMounted } from 'vue'
+
+const props = defineProps({
+  apiStatus: {
+    type: Boolean,
+    default: null
   }
-}
+})
+
+const hora = ref('—')
+
+onMounted(() => {
+  // actualizar hora cada segundo
+  const updateClock = () => {
+    const d = new Date()
+    const pad = x => String(x).padStart(2,'0')
+    hora.value = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  }
+  updateClock()
+  setInterval(updateClock, 1000)
+})
 </script>
 
 <style scoped>
@@ -41,7 +52,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2rem;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0,0,0,0.1);
   backdrop-filter: blur(10px);
 }
 
@@ -64,6 +75,12 @@ export default {
   color: rgba(255,255,255,0.8);
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .api-status {
   display: flex;
   align-items: center;
@@ -71,7 +88,7 @@ export default {
   padding: 0.4rem 1rem;
   border-radius: 20px;
   font-size: 0.9rem;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255,255,255,0.15);
   white-space: nowrap;
   min-width: 160px;
 }
@@ -105,5 +122,13 @@ export default {
 
 .api-status .offline-text {
   color: #dc2626;
+}
+
+.chip.clock {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  font-weight: 600;
+  white-space: nowrap;
 }
 </style>

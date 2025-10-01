@@ -90,7 +90,7 @@ export default {
   methods: {
     async checkApiStatus() {
       try {
-        // 👇 Aquí llama a TU endpoint /api
+        //llama a  endpoint /api
         const response = await fetch('/api')
         this.apiStatus = response.ok // true si 200-299, false si 4xx/5xx
       } catch (error) {
@@ -103,10 +103,10 @@ export default {
 </script>
 
 <style scoped>
-/* ... tus estilos igual que antes ... */
+
 .home {
   min-height: 100vh;
-  background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+  background: linear-gradient(180deg, #1e3a70, #2e4a8c 30%, #3a5eb0 100%);
   color: #fff;
 }
 
