@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const routes = require('./routes/index');
 
 const app = express();
 
@@ -17,7 +18,12 @@ app.get('/api', (req, res) => {
   });
 });
 
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' })
+})
+
 // Rutas
+app.use('/api', routes);
 
 // Middleware 
 app.use((err, req, res, next) => {
