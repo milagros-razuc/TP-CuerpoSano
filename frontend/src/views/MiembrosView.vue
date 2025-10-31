@@ -27,8 +27,16 @@
             <div class="state hide-on-print" v-if="mensaje">{{ mensaje }}</div>
             <div class="row">
               <div>
-                <label>Nombre completo</label>
-                <input type="text" v-model="miembro.nombre" placeholder="Ej.: Carla Gómez" />
+                <label>Nombre</label>
+                <input type="text" v-model="miembro.nombre"  placeholder="Ej.: Carla Gómez" />
+              </div>
+              <div>
+                <label>Apellido</label>
+                <input
+                  type="text"
+                  v-model="miembro.apellido"
+                  placeholder="Ej.: Gómez"
+                />
               </div>
               <div>
                 <label>Teléfono</label>
@@ -44,18 +52,18 @@
               </div>
               <div>
                 <label>Fecha de nacimiento</label>
-                <input type="date" v-model="miembro.fnac" />
+                <input type="date" v-model="miembro.fecha_nacimiento" />
               </div>
               <div>
                 <label>Tipo de membresía</label>
-                <select v-model="miembro.tipo">
-                  <option value="">Seleccione...</option>
-                  <option v-for="t in tipos" :key="t.id" :value="t.nombre">{{ t.nombre }}</option>
-                </select>
+                  <select v-model="miembro.tipo">
+                    <option value="">Seleccione...</option>
+                    <option v-for="t in tipos" :key="t.id" :value="t.id">{{ t.nombre }}</option>
+                  </select>
               </div>
               <div>
                 <label>Fecha de registro</label>
-                <input type="date" v-model="miembro.fechaRegistro" />
+                <input type="date" v-model="miembro.fecha_registro" />
               </div>
               <div>
                 <label>Foto (URL opcional)</label>
@@ -65,11 +73,11 @@
                  <label>Métodos de identificación</label>
                   <div>
                     <label>
-                      <input type="checkbox" value="codigo_barras" v-model="miembro.metodosIdentificacion" />
+                      <input type="checkbox" value="codigo_barras" v-model="miembro.metodo_identificacion" />
                       Código de barras
                     </label>
                     <label>
-                      <input type="checkbox" value="huella_digital" v-model="miembro.metodosIdentificacion" />
+                      <input type="checkbox" value="huella" v-model="miembro.metodo_identificacion" />
                       Huella digital
                     </label>
                   </div>
@@ -101,10 +109,10 @@
               </thead>
               <tbody>
                 <tr v-for="m in miembrosFiltrados" :key="m.dni" @click="prefill(m)">
-                  <td>{{ m.nombre }}</td>
+                  <td>{{ m.nombreCompleto }}</td>
                   <td>{{ m.dni }}</td>
-                  <td>{{ m.tipo }}</td>
-                  <td>{{ m.fechaRegistro }}</td>
+                  <td>{{ m.tipoNombre }}</td>
+                  <td>{{ m.fecha_registro }}</td>
                 </tr>
               </tbody>
             </table>
@@ -134,28 +142,33 @@ const tipos = ref([])
 const buscar = ref('')
 const mensaje = ref('')
 const activeTab = ref('cu01')
+
+// Modelo de miembro con todos los campos
 const miembro = ref({
- nombre: '',
+  id: null,
+  nombre: '',
+  apellido: '',
   dni: '',
   telefono: '',
   email: '',
   fecha_nacimiento: '',
-  fechaRegistro: '', // fecha de inicio
+  fecha_registro: '',
   foto: '',
-  activo: '',
-  metodosIdentificacion: [] 
-});
+  activo: true,
+  metodo_identificacion: [],
+  tipo: ''
+})
 
-
+// Filtrado de miembros para la tabla
 const miembrosFiltrados = computed(() =>
   miembros.value.filter(m =>
     m.nombre.toLowerCase().includes(buscar.value.toLowerCase()) ||
-    m.dni.includes(buscar.value)
+    m.dni.toString().includes(buscar.value)
   )
 )
 
 onMounted(() => {
-  // reloj
+  // Reloj
   setInterval(() => {
     const d = new Date()
     const pad = x => String(x).padStart(2, '0')
@@ -166,52 +179,101 @@ onMounted(() => {
   cargarMiembros()
 })
 
+// Traer miembros desde la API
 async function cargarMiembros() {
   const res = await axios.get(`${API}/miembros`)
-  miembros.value = res.data
+  miembros.value = res.data.map(m => ({
+    ...m,
+    nombreCompleto: `${m.nombre} ${m.apellido}`,
+    tipo: m.membresias.length ? m.membresias[0].tipo?.id : '',
+    tipoNombre: m.membresias.length ? m.membresias[0].tipo?.nombre : ''
+  }))
 }
 
+// Traer tipos de membresía
 async function cargarMembresias() {
-  const res = await axios.get(`${API}/membresias`)
+  const res = await axios.get(`${API}/TipoMembresias`)
   tipos.value = res.data
 }
 
+// Registrar
 async function registrar() {
-  if (!miembro.value.nombre || !miembro.value.dni || !miembro.value.tipo || !miembro.value.freg) {
+  try {
+  if (!miembro.value.nombre || !miembro.value.apellido || !miembro.value.dni || !miembro.value.tipo)
     return alert('Complete los campos obligatorios')
-  }
+
   await axios.post(`${API}/miembros`, miembro.value)
   await cargarMiembros()
   limpiar()
+  }catch (error) {
+    if (error.response && error.response.data?.detalles) {
+      // Muestra los errores de validación del backend
+      alert('Errores: ' + error.response.data.detalles.join(', '));
+    } else {
+      alert('No se pudo crear el miembro');
+      console.error(error);
+   }
+  }
 }
-
+// Modificar
 async function modificar() {
-  if (!miembro.value.dni) return alert('Seleccione un miembro para modificar')
+  if (!miembro.value.dni) return alert('Seleccione un miembro')
   await axios.put(`${API}/miembros/${miembro.value.dni}`, miembro.value)
   await cargarMiembros()
   limpiar()
 }
 
+// Eliminar
 async function eliminar() {
-  if (!miembro.value.dni) return alert('Seleccione un miembro para eliminar')
-  if (!confirm(`¿Eliminar al miembro ${miembro.value.nombre}?`)) return
+  if (!miembro.value.dni) return alert('Seleccione un miembro')
+  if (!confirm(`¿Eliminar a ${miembro.value.nombre}?`)) return
   await axios.delete(`${API}/miembros/${miembro.value.dni}`)
   await cargarMiembros()
   limpiar()
 }
 
+// Prefill formulario al seleccionar de la tabla
 function prefill(m) {
-  miembro.value = { ...m }
+  miembro.value = {
+    id: m.id,
+    nombre: m.nombre,
+    apellido: m.apellido,
+    dni: m.dni,
+    telefono: m.telefono,
+    email: m.email,
+    fecha_nacimiento: m.fecha_nacimiento,
+    fecha_registro: m.fecha_registro,
+    foto: m.foto,
+    activo: m.activo,
+    metodo_identificacion: Array.isArray(m.metodo_identificacion) ? m.metodo_identificacion : [m.metodo_identificacion],
+    tipo: m.tipo
+  }
 }
 
+// Limpiar formulario
 function limpiar() {
-  miembro.value = { nombre: '', tel: '', dni: '', email: '', fnac: '', tipo: '', freg: '', foto: '' }
+  miembro.value = {
+    id: null,
+    nombre: '',
+    apellido: '',
+    dni: '',
+    telefono: '',
+    email: '',
+    fecha_nacimiento: '',
+    fecha_registro: '',
+    foto: '',
+    activo: true,
+    metodo_identificacion: [],
+    tipo: ''
+  }
 }
 
+// Imprimir listado
 function imprimir() {
   window.print()
 }
 </script>
+
 
 <style>
 :root{
