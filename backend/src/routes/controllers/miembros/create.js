@@ -23,7 +23,7 @@ module.exports = async (req, res) => {
 
     let codigoBarra = null;
     let codigoVisible = null;
-    if (metodo === 'codigo_barra') {
+    if (metodo === 'codigo_barras') {
       const { codigo, hash } = generarCodigoDeBarras(); // 🔸 llamado al util
       codigoBarra = hash; // lo que se guarda en BD
       codigoVisible = codigo; // lo que podés devolver al front
@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
       fecha_registro: data.fecha_registro,
       activo: data.activo ?? true,
       metodo_identificacion: metodo,
-      codigo_barra: data.codigo_barra || null,
+      codigo_barra: codigoBarra,
       huella_digital: data.huella_digital || null,
       foto: data.foto || null
     });

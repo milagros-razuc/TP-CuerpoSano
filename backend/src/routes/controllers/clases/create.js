@@ -17,6 +17,7 @@ module.exports = async (req, res) => {
 
     // Crear clase
     const nuevaClase = await Clase.create({
+      nombre,   
       hora_inicio,
       duracion_minutos,
       cupo_maximo,
