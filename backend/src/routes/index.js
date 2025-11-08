@@ -26,7 +26,29 @@ const createInscripciones = require('./controllers/inscripciones/create');
 const updateInscripciones = require('./controllers/inscripciones/update');
 const removeInscripciones = require('./controllers/inscripciones/delete');
 
+// === ENTRENADORES ===
 
+const getEntrenadores = require('./controllers/entrenadores/get-all');
+const createEntrenadores = require('./controllers/entrenadores/create');
+const updateEntenadores = require('./controllers/entrenadores/update');
+const removeEntrenadores = require('./controllers/entrenadores/delete');
+
+// === ESPECIALIDADES ===
+const getAllEspecialidades = require('./controllers/especialidades/get-all');
+const createEspecialidad = require('./controllers/especialidades/create');
+const updateEspecialidad = require('./controllers/especialidades/update');
+const removeEspecialidad = require('./controllers/especialidades/delete');
+
+// === ACTIVIDADES ===
+const getAllActividades = require('./controllers/actividades/get-all');
+const createActividad = require('./controllers/actividades/create');
+const updateActividad = require('./controllers/actividades/update');
+const removeActividad = require('./controllers/actividades/delete');
+
+// === ASISTENCIAS ===
+const registrarGimnasio = require('./controllers/asistencias/registrarGimnasio');
+const registrarClase = require('./controllers/asistencias/registrarClase');
+const getReportes = require('./controllers/asistencias/getReporte');
 
 // --- Rutas para MIEMBROS ---
 router.post('/miembros', crearMiembro);
@@ -53,5 +75,28 @@ router.get('/inscripciones', getInscripciones);
 router.post('/inscripciones', createInscripciones);
 router.put('/inscripciones/:dni_miembro/:id_clase', updateInscripciones);
 router.delete('/inscripciones/:dni_miembro/:id_clase', removeInscripciones);
+
+// --- Rutas para ENTRENADORES ---
+router.get('/entrenadores', getEntrenadores);
+router.post('/entrenadores', createEntrenadores);
+router.put('/entrenadores/:dni', updateEntenadores);
+router.delete('/entrenadores/:dni', removeEntrenadores);
+
+// --- Rutas para ESPECIALIDADES ---
+router.get('/especialidades', getAllEspecialidades);
+router.post('/especialidades', createEspecialidad);
+router.put('/especialidades/:id', updateEspecialidad);
+router.delete('/especialidades/:id', removeEspecialidad);
+
+// --- Rutas para ACTIVIDADES ---
+router.get('/actividades', getAllActividades);
+router.post('/actividades', createActividad);
+router.put('/actividades/:id', updateActividad);
+router.delete('/actividades/:id', removeActividad);
+
+// --- Rutas para ASISTENCIAS ---
+router.post('/asistencias/gimnasio', registrarGimnasio);
+router.post('/asistencias/clase', registrarClase);
+router.get('/asistencias/reportes', getReportes);
 
 module.exports = router;
