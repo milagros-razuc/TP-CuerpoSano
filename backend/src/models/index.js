@@ -87,6 +87,10 @@ Clase.belongsTo(Entrenador, { foreignKey: 'id_entrenador', as: 'entrenador' });
 Clase.hasMany(ClaseDia, { foreignKey: 'id_clase', as: 'dias' });
 ClaseDia.belongsTo(Clase, { foreignKey: 'id_clase', as: 'clase' });
 
+
+Miembro.hasMany(Pago, { foreignKey: 'id_miembro', as: 'pagos' });
+Pago.belongsTo(Miembro, { foreignKey: 'id_miembro', as: 'miembro' });
+
 module.exports = {
   Miembro,
   TipoMembresia,

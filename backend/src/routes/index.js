@@ -8,11 +8,11 @@ const deleteMiembro = require('./controllers/miembros/delete');
 const getAllMiembros = require('./controllers/miembros/get-all');
 
 
-// === MEMBRESIAS ===
-const getMembresias = require('./controllers/membresias/get-all');
-const createMembresias = require('./controllers/membresias/create');
-const updateMembresias = require('./controllers/membresias/update');
-const removeMembresias = require('./controllers/membresias/delete');
+// === TIPO MEMBRESIAS ===
+const getMembresias = require('./controllers/tipoMembresias/get-all');
+const createMembresias = require('./controllers/tipoMembresias/create');
+const updateMembresias = require('./controllers/tipoMembresias/update');
+const removeMembresias = require('./controllers/tipoMembresias/delete');
 
 // === CLASES ===
 const getClases = require('./controllers/clases/get-all');
@@ -49,6 +49,24 @@ const removeActividad = require('./controllers/actividades/delete');
 const registrarGimnasio = require('./controllers/asistencias/registrarGimnasio');
 const registrarClase = require('./controllers/asistencias/registrarClase');
 const getReportes = require('./controllers/asistencias/getReporte');
+const getAllGimnasio = require('./controllers/asistencias/getAllGimnasio');
+const getAllClases = require('./controllers/asistencias/getAllClases');
+
+// === MEMBRESIAS ===
+const createMembresia = require('./controllers/membresias/create');
+const getAllMembresias = require('./controllers/membresias/get-all');
+const deleteMembresia = require('./controllers/membresias/delete');
+
+// === PAGOS ===
+const createPago = require('./controllers/pagos/create');
+const getAllPagos = require('./controllers/pagos/get-all');
+const cancelPago = require('./controllers/pagos/delete');
+
+// === METODO PAGOS ===
+const createMetodoPago = require('./controllers/metodoPagos/create');
+const getMetodosPago = require('./controllers/metodoPagos/get-all');
+const updateMetodoPago = require('./controllers/metodoPagos/update');
+
 
 // --- Rutas para MIEMBROS ---
 router.post('/miembros', crearMiembro);
@@ -56,7 +74,7 @@ router.put('/miembros/:dni', updateMiembro);
 router.delete('/miembros/:dni', deleteMiembro);
 router.get('/miembros', getAllMiembros);
 
-// --- Rutas para MEMBRESIAS ---
+// --- Rutas para TIPO MEMBRESIAS ---
 
 router.get('/TipoMembresias', getMembresias);
 router.post('/TipoMembresias', createMembresias);
@@ -98,5 +116,24 @@ router.delete('/actividades/:id', removeActividad);
 router.post('/asistencias/gimnasio', registrarGimnasio);
 router.post('/asistencias/clase', registrarClase);
 router.get('/asistencias/reportes', getReportes);
+router.get('/asistencias/gimnasio', getAllGimnasio);
+router.get('/asistencias/clases', getAllClases);
+
+
+// --- Rutas para MEMBRESIAS ---
+router.post('/membresias', createMembresia);
+router.get('/membresias', getAllMembresias);
+router.delete('membresias/:id', deleteMembresia);
+
+// --- Rutas para PAGOS ---
+router.post('/pagos', createPago);
+router.get('/pagos', getAllPagos);
+router.patch('pagos/:id', cancelPago);
+
+// --- Rutas para METODO PAGOS ---
+router.post('/metodoPago', createMetodoPago);
+router.get('/metodoPago', getMetodosPago);
+router.put('/metodoPago/:id', updateMetodoPago);
+
 
 module.exports = router;
