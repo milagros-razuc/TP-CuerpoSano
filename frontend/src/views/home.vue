@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <Header :apiStatus="apiStatus" />
 
     <main class="main-content">
       <div class="welcome-box">
