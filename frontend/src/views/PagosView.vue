@@ -169,7 +169,8 @@ async function onSave() {
     })
   }
 
-  const confirm = await Swal.fire({
+  // Confirmar registro
+  let confirm = await Swal.fire({
     title: 'Confirmar registro',
     text: '¿Desea registrar este pago?',
     icon: 'question',
@@ -181,7 +182,24 @@ async function onSave() {
   if (!confirm.isConfirmed) return
 
   try {
-    const r = await api.createOne({ ...form })
+    // Intentar crear el pago
+    let r = await api.createOne({ ...form })
+    // ⚠️ Si hay warning del backend por membresía distinta
+    if (r.warning && !form.forzarCambio) {
+      const changeConfirm = await Swal.fire({
+        title: 'Tipo de membresía diferente',
+        html: `El tipo de membresía actual del miembro (${r.current_membresia}) no coincide con la seleccionada (${r.selected_membresia}).<br>¿Desea actualizarla y registrar el pago?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, actualizar y pagar',
+        cancelButtonText: 'Cancelar'
+      })
+      if (!changeConfirm.isConfirmed) return
+      // Reintentar con forzarCambio
+      form.forzarCambio = true
+      r = await api.createOne({ ...form })
+    }
+
     const created = r.pago || r
     const display = {
       id: created.id,
@@ -194,7 +212,7 @@ async function onSave() {
     items.value.unshift(display)
 
     selected.value = null
-    Object.assign(form, { id_miembro: null, id_tipo_membresia: null, id_metodoPago: null, monto: 0, observaciones: '' })
+    Object.assign(form, { id_miembro: null, id_tipo_membresia: null, id_metodoPago: null, monto: 0, observaciones: '', forzarCambio: false })
 
     Swal.fire({
       icon: 'success',
