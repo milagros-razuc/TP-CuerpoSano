@@ -1,46 +1,53 @@
-const { Pago, Miembro, MetodoPago, Membresia } = require('../../../models');
+const { Pago, Miembro, MetodoPago, Membresia, TipoMembresia } = require('../../../models');
 
 module.exports = async (req, res) => {
   try {
-    const { dni, id_membresia, id_metodoPago, monto } = req.body;
+    const { id_miembro, id_tipo_membresia, id_metodoPago, monto } = req.body;
 
-    if (!dni || !id_membresia || !id_metodoPago || !monto) {
-      return res.status(400).json({ error: 'Faltan datos obligatorios (dni, id_membresia, id_metodoPago, monto)' });
+    if (!id_miembro || !id_tipo_membresia || !id_metodoPago || !monto) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios (id_miembro, id_tipo_membresia, id_metodoPago, monto)' });
     }
 
-    // Buscar miembro por DNI
-    const miembro = await Miembro.findOne({ where: { dni } });
+    // Buscar miembro por id
+    const miembro = await Miembro.findByPk(id_miembro);
     if (!miembro) return res.status(404).json({ error: 'Miembro no encontrado' });
 
-    // Buscar membresía
-    const membresia = await Membresia.findByPk(id_membresia);
-    if (!membresia) return res.status(404).json({ error: 'Membresía no encontrada' });
+    // Buscar tipo de membresía
+    const tipo = await TipoMembresia.findByPk(id_tipo_membresia);
+    if (!tipo) return res.status(404).json({ error: 'Tipo de membresía no encontrado' });
 
     // Buscar método de pago
     const metodoPago = await MetodoPago.findByPk(id_metodoPago);
     if (!metodoPago) return res.status(404).json({ error: 'Método de pago no válido' });
 
-    // Crear el pago
+    // Crear una nueva membresía para este miembro basada en el tipo seleccionado
+    const inicio = new Date();
+    // Duración en días definida en el tipo
+    const durDias = Number(tipo.duracion_dias) || 0;
+    const fin = new Date(inicio.getTime() + durDias * 24 * 60 * 60 * 1000);
+
+    const nuevaMembresia = await Membresia.create({
+      id_miembro: miembro.id,
+      id_tipo: tipo.id,
+      fecha_inicio: inicio,
+      fecha_fin: fin,
+      estado: 'activa'
+    });
+
+    // Crear el pago asociado a la nueva membresía
     const nuevoPago = await Pago.create({
       fecha_pago: new Date(),
       monto,
       id_metodoPago,
       estado_pago: 'confirmado', // al registrarlo ya se confirma
       id_miembro: miembro.id,
-      id_membresia
+      id_membresia: nuevaMembresia.id
     });
 
-    // Si el pago fue confirmado, activar la membresía
-    if (nuevoPago.estado_pago === 'confirmado') {
-      if (membresia.estado !== 'activa') {
-        membresia.estado = 'activa';
-        await membresia.save();
-      }
-    }
-
     res.status(201).json({
-      message: 'Pago registrado correctamente y membresía activada',
-      pago: nuevoPago
+      message: 'Pago registrado correctamente y membresía creada/activada',
+      pago: nuevoPago,
+      membresia: nuevaMembresia
     });
 
   } catch (error) {

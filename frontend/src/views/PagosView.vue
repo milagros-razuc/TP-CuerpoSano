@@ -23,17 +23,16 @@
         </div>
 
         <div style="flex:1">
-          <label>Tipo de pago</label>
-          <select v-model="form.tipo">
-            <option value="membresia">Membresía</option>
-            <option value="clase">Clase</option>
+          <label>Membresía</label>
+          <select v-model="form.id_tipo_membresia" @change="onTipoChange">
+            <option :value="null">-- Seleccione --</option>
+            <option v-for="t in tipos" :key="t.id" :value="t.id">{{ t.nombre }} — ${{ String(t.precio).replace('.',',') }}</option>
           </select>
 
           <label>Método</label>
           <select v-model="form.id_metodoPago">
-            <option :value="1">Efectivo</option>
-            <option :value="2">Mercado Pago</option>
-            <option :value="3">Tarjeta</option>
+            <option :value="null">-- Seleccione --</option>
+            <option v-for="m in metodos" :key="m.id" :value="m.id">{{ m.nombre }}</option>
           </select>
 
           <label>Monto</label>
@@ -92,23 +91,35 @@
 import { ref, reactive, onMounted } from 'vue'
 import BaseCard from '../components/ui/BaseCard.vue'
 import * as api from '../services/payments.js'
+import * as tiposApi from '../services/memberships.js'
+import * as metodosApi from '../services/metodoPagos.js'
 
 const q = ref('')
 const results = ref([])
 const selected = ref(null)
 const form = reactive({
   id_miembro: null,
-  tipo: 'membresia',
-  id_metodoPago: 1,
+  id_tipo_membresia: null, // seleccionado (TipoMembresia)
+  id_metodoPago: null,
   monto: 0,
   fecha_pago: new Date().toISOString().slice(0,10),
   observaciones: ''
 })
+const tipos = ref([])
+const metodos = ref([])
 const filters = reactive({ q: '' })
 const items = ref([])
 
 async function fetch() {
   items.value = await api.listAll(filters)
+}
+
+async function loadTipoMembresias(){
+  try{ tipos.value = await tiposApi.listAll() }catch(e){ console.error('Error cargando tipos de membresía', e); tipos.value = [] }
+}
+
+async function loadMetodosPago(){
+  try{ metodos.value = await metodosApi.listAll() }catch(e){ console.error('Error cargando métodos de pago', e); metodos.value = [] }
 }
 
 function formatDate(d) {
@@ -140,13 +151,31 @@ function deselect() {
   form.id_miembro = null
 }
 
+function onTipoChange(){
+  const sel = tipos.value.find(t=>t.id === form.id_tipo_membresia)
+  if(sel){ form.monto = Number(sel.precio) }
+}
+
 async function onSave() {
   if (!form.id_miembro) return alert('Seleccione un miembro antes de registrar el pago')
   try {
     const r = await api.createOne({ ...form })
-    items.value.unshift(r)
+    // backend returns { message, pago, membresia } — normalize the item for the recent list
+    const created = r.pago || r
+    const display = {
+      id: created.id,
+      fecha_pago: created.fecha_pago,
+      monto: created.monto,
+      estado_pago: created.estado_pago,
+      // include metodoPago object if we have it loaded
+      metodoPago: metodos.value.find(m => m.id === created.id_metodoPago) || null,
+      // include miembro info from selected if available
+      miembro: selected.value ? { id: selected.value.id, nombre: selected.value.nombre, apellido: selected.value.apellido, dni: selected.value.dni } : null
+    }
+    items.value.unshift(display)
+    // clear selection and reset form
     selected.value = null
-    Object.assign(form, { id_miembro:null, monto:0, observaciones:'' })
+    Object.assign(form, { id_miembro: null, id_tipo_membresia: null, id_metodoPago: null, monto: 0, observaciones: '' })
   } catch (e) {
     console.error(e)
     alert('Error al registrar pago: ' + (e?.response?.data?.error || e.message))
@@ -154,4 +183,5 @@ async function onSave() {
 }
 
 onMounted(fetch)
+onMounted(()=>{ loadTipoMembresias(); loadMetodosPago() })
 </script>
