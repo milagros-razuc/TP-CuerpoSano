@@ -290,7 +290,61 @@ function limpiar() {
 
 // Imprimir
 function imprimir() {
-  window.print()
+  // Imprimir solo la tabla de miembros filtrados: abrimos una ventana nueva con HTML minimal
+  const rows = miembrosFiltrados.value || []
+  const css = `
+    <style>
+      body{font-family: Arial, Helvetica, sans-serif; color:#0b2338; margin:20px}
+      h1{font-size:18px}
+      table{width:100%;border-collapse:collapse;margin-top:10px}
+      th,td{border:1px solid #ddd;padding:8px;text-align:left}
+      th{background:#f4f6f8}
+    </style>`
+
+  const htmlRows = rows.map(m => `
+    <tr>
+      <td>${escapeHtml(m.nombreCompleto ?? (m.nombre + ' ' + (m.apellido||'')).trim())}</td>
+      <td>${escapeHtml(String(m.dni ?? ''))}</td>
+      <td>${escapeHtml(m.tipoNombre ?? '')}</td>
+      <td>${escapeHtml(m.fecha_registro ?? '')}</td>
+    </tr>`).join('')
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Listado de Miembros</title>${css}</head><body>
+    <h1>Listado de Miembros</h1>
+    <table>
+      <thead>
+        <tr><th>Nombre</th><th>DNI</th><th>Membresía</th><th>Inicio</th></tr>
+      </thead>
+      <tbody>
+        ${htmlRows || '<tr><td colspan="4" style="text-align:center">No hay miembros</td></tr>'}
+      </tbody>
+    </table>
+  </body></html>`
+
+  const w = window.open('', '_blank')
+  if (!w) {
+    // Fallback: imprimir la página actual
+    window.print()
+    return
+  }
+  w.document.write(html)
+  w.document.close()
+  w.focus()
+  // delay para asegurar renderizado
+  setTimeout(() => {
+    w.print()
+    // no forzamos el cierre inmediato por compatibilidad
+  }, 300)
+}
+
+// Helper para evitar inyección HTML al insertar texto
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 </script>
 

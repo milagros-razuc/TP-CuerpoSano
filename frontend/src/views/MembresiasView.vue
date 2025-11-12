@@ -32,10 +32,10 @@
     <BaseCard>
       <template #header>
         <h3>Listado</h3>
-        <Toolbar>
+          <Toolbar>
           <input v-model="q" type="text" placeholder="Buscar..." @input="fetch" />
           <button class="btn" @click="clear">Limpiar</button>
-          <button class="btn" @click="window.print()">Imprimir</button>
+          <button class="btn" @click="imprimir">Imprimir</button>
         </Toolbar>
       </template>
 
@@ -186,4 +186,56 @@ async function onDelete() {
 }
 
 onMounted(fetch)
+
+// Imprimir solo la tabla de membresías filtradas
+function imprimir() {
+  const rows = items.value || []
+  const css = `
+    <style>
+      body{font-family: Arial, Helvetica, sans-serif; color:#0b2338; margin:20px}
+      h1{font-size:18px}
+      table{width:100%;border-collapse:collapse;margin-top:10px}
+      th,td{border:1px solid #ddd;padding:8px;text-align:left}
+      th{background:#f4f6f8}
+    </style>`
+
+  const htmlRows = rows.map(r => `
+    <tr>
+      <td>${escapeHtml(r.nombre ?? '')}</td>
+      <td>${escapeHtml(r.descripcion ?? '')}</td>
+      <td>${escapeHtml(formatPrice(r.precio))}</td>
+      <td>${escapeHtml(String(r.duracion_dias ?? ''))}</td>
+    </tr>`).join('')
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Listado de Membresías</title>${css}</head><body>
+    <h1>Listado de Membresías</h1>
+    <table>
+      <thead>
+        <tr><th>Nombre</th><th>Descripción</th><th>Precio</th><th>Duración (días)</th></tr>
+      </thead>
+      <tbody>
+        ${htmlRows || '<tr><td colspan="4" style="text-align:center">No hay membresías</td></tr>'}
+      </tbody>
+    </table>
+  </body></html>`
+
+  const w = window.open('', '_blank')
+  if (!w) {
+    window.print()
+    return
+  }
+  w.document.write(html)
+  w.document.close()
+  w.focus()
+  setTimeout(() => { w.print() }, 300)
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 </script>
