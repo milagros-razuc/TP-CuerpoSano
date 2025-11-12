@@ -2,12 +2,13 @@ const { Inscripcion, Miembro } = require('../../../models');
 
 module.exports = async (req, res) => {
   try {
-    const { dni_miembro, id_clase } = req.params;
+    // Ahora recibimos id_miembro en la ruta en lugar de dni_miembro
+    const { id_miembro, id_clase } = req.params;
 
-    // Buscar miembro por DNI
-    const miembro = await Miembro.findOne({ where: { dni: dni_miembro } });
+    // Buscar miembro por id
+    const miembro = await Miembro.findByPk(id_miembro);
     if (!miembro) {
-      return res.status(404).json({ error: 'Miembro no encontrado con ese DNI' });
+      return res.status(404).json({ error: 'Miembro no encontrado' });
     }
 
     // Buscar inscripción

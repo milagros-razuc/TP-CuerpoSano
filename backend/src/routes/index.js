@@ -91,8 +91,8 @@ router.delete('/clases/:id', removeClases);
 // --- Rutas para INSCRIPCIONES ---
 router.get('/inscripciones', getInscripciones);
 router.post('/inscripciones', createInscripciones);
-router.put('/inscripciones/:dni_miembro/:id_clase', updateInscripciones);
-router.delete('/inscripciones/:dni_miembro/:id_clase', removeInscripciones);
+router.put('/inscripciones/:id_miembro/:id_clase', updateInscripciones);
+router.delete('/inscripciones/:id_miembro/:id_clase', removeInscripciones);
 
 // --- Rutas para ENTRENADORES ---
 router.get('/entrenadores', getEntrenadores);

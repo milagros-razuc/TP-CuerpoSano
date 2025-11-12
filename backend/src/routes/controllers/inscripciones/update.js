@@ -2,16 +2,17 @@ const { Inscripcion, Miembro } = require('../../../models');
 
 module.exports = async (req, res) => {
   try {
-    const { dni_miembro, id_clase } = req.params;
+    // Ahora recibimos id_miembro en la ruta en lugar de dni_miembro
+    const { id_miembro, id_clase } = req.params;
     const { fecha_inscripcion } = req.body;
 
-    // Buscar miembro por DNI
-    const miembro = await Miembro.findOne({ where: { dni: dni_miembro } });
+    // Buscar miembro por id
+    const miembro = await Miembro.findByPk(id_miembro);
     if (!miembro) {
-      return res.status(404).json({ error: 'Miembro no encontrado con ese DNI' });
+      return res.status(404).json({ error: 'Miembro no encontrado' });
     }
 
-    // Buscar inscripción
+    // Buscar inscripción por ids
     const inscripcion = await Inscripcion.findOne({
       where: { id_miembro: miembro.id, id_clase }
     });
@@ -19,8 +20,8 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Inscripción no encontrada para este miembro y clase' });
     }
 
-    // Actualizar fecha
-    await inscripcion.update({ fecha_inscripcion });
+    // Actualizar fecha (comportamiento similar a create)
+    await inscripcion.update({ fecha_inscripcion: fecha_inscripcion || new Date() });
 
     res.json({ message: 'Inscripción actualizada correctamente', inscripcion });
   } catch (error) {
