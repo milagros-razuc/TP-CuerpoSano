@@ -52,6 +52,9 @@ const getReportes = require('./controllers/asistencias/getReporte');
 const getAllGimnasio = require('./controllers/asistencias/getAllGimnasio');
 const getAllClases = require('./controllers/asistencias/getAllClases');
 
+// (moved) Reportes de pagos
+const getPagosReporte = require('./controllers/pagos/getReporte');
+
 // === MEMBRESIAS ===
 const createMembresia = require('./controllers/membresias/create');
 const getAllMembresias = require('./controllers/membresias/get-all');
@@ -119,7 +122,6 @@ router.get('/asistencias/reportes', getReportes);
 router.get('/asistencias/gimnasio', getAllGimnasio);
 router.get('/asistencias/clases', getAllClases);
 
-
 // --- Rutas para MEMBRESIAS ---
 router.post('/membresias', createMembresia);
 router.get('/membresias', getAllMembresias);
@@ -127,6 +129,7 @@ router.delete('membresias/:id', deleteMembresia);
 
 // --- Rutas para PAGOS ---
 router.post('/pagos', createPago);
+router.get('/pagos/reportes', getPagosReporte);
 router.get('/pagos', getAllPagos);
 router.patch('pagos/:id', cancelPago);
 
