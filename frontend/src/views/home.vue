@@ -41,38 +41,73 @@ export default {
           title: "Gestión de Miembros",
           description: "Registrar, modificar, consultar y eliminar miembros del gimnasio.",
           icon: "👥",
-          rf: "RF 01 a RF 06",
-          route: "/miembros" 
+          route: "/miembros"
         },
         {
           title: "Gestión de Membresías",
           description: "Activar, renovar y administrar los planes de membresía de los socios.",
           icon: "💳",
-          rf: "RF 11 a RF 17"
+          route: "/membresias"
         },
         {
           title: "Gestión de Entrenadores",
           description: "Registrar y asignar entrenadores, validar certificaciones.",
           icon: "👨‍🏫",
-          rf: "RF 30 a RF 37"
+          route: "/entrenadores"
         },
         {
           title: "Gestión de Horarios",
           description: "Crear, modificar y eliminar los horarios de las clases grupales.",
           icon: "⏰",
-          rf: "RF 18 a RF 22"
+          route: "/clases"
+        },
+        {
+          title: "Inscripciones",
+          description: "Administrar las inscripciones a clases grupales.",
+          icon: "📝",
+          route: "/inscripciones"
         },
         {
           title: "Gestión de Actividades",
           description: "Administrar las actividades que ofrece el gimnasio a sus socios.",
           icon: "🧘",
-          rf: "RF 23 a RF 27"
+          route: "/actividades"
         },
         {
-          title: "Reportes y Estadísticas",
-          description: "Generar reportes de ingresos, asistencia al gimnasio y a clases.",
-          icon: "📊",
-          rf: "RF 38 a RF 40"
+          title: "Especialidades",
+          description: "Administrar las especialidades disponibles para entrenadores.",
+          icon: "🏷️",
+          route: "/especialidades"
+        },
+        {
+          title: "Ingreso al Gimnasio",
+          description: "Registrar ingreso de miembros al gimnasio.",
+          icon: "🚪",
+          route: "/ingreso-gimnasio"
+        },
+        {
+          title: "Ingreso a Clases",
+          description: "Registrar asistencia de miembros a clases grupales.",
+          icon: "🏋️",
+          route: "/ingreso-clases"
+        },
+        {
+          title: "Pagos",
+          description: "Registrar y consultar pagos y métodos de pago.",
+          icon: "💲​",
+          route: "/pagos"
+        },
+        {
+          title: "Reporte de Ingresos",
+          description: "Ver reportes de ingresos por métodos y fechas.",
+          icon: "📈",
+          route: "/reportes/ingresos"
+        },
+        {
+          title: "Reporte de Asistencia",
+          description: "Ver reportes de asistencia al gimnasio y a clases.",
+          icon: "📋",
+          route: "/reportes/asistencia"
         }
       ]
     }
@@ -139,6 +174,12 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
+}
+
+/* Make the link fill the grid cell so the card can stretch to equal height */
+.module-link {
+  display: block;
+  height: 100%;
 }
 
 .module-link {

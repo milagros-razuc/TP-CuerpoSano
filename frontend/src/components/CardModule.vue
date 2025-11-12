@@ -4,7 +4,6 @@
     <div class="module-icon">{{ module.icon }}</div>
     <h3>{{ module.title }}</h3>
     <p class="module-description">{{ module.description }}</p>
-    <div class="rf-tag">{{ module.rf }}</div>
   </div>
 </template>
 
@@ -27,6 +26,9 @@ export default {
   padding: 1.5rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* let the card fill the grid cell */
 }
 
 .module-card:hover {
@@ -49,14 +51,9 @@ export default {
   font-size: 0.9rem;
   color: rgba(255,255,255,0.8);
   margin-bottom: 1rem;
+  /* allow description to take remaining vertical space so headings/footers align */
+  flex: 1 1 auto;
 }
 
-.rf-tag {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.2rem 0.6rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.7);
-}
+/* rf-tag removed */
 </style>
