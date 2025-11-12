@@ -3,12 +3,37 @@
     <BaseCard>
       <template #header><h2>CU-05 — Entrenadores</h2></template>
       <form class="row" @submit.prevent="onSave">
-        <div><label>Nombre</label><input v-model="form.nombre" type="text" placeholder=""/></div>
-        <div><label>Email</label><input v-model="form.email" type="email" placeholder=""/></div>
+        <div><label>Nombre</label><input v-model="form.nombre" type="text" placeholder="" required/></div>
+        <div><label>Apellido</label><input v-model="form.apellido" type="text" placeholder="" required/></div>
+        <div><label>DNI</label><input v-model.number="form.dni" type="number" placeholder="" required/></div>
+        <div><label>Email</label><input v-model="form.email" type="email" placeholder="" required/></div>
         <div><label>Teléfono</label><input v-model="form.telefono" type="text" placeholder=""/></div>
-        <div><label>Nacimiento</label><input v-model="form.fechaNacimiento" type="date" placeholder=""/></div>
-        <div><label>Inicio</label><input v-model="form.fechaInicio" type="date" placeholder=""/></div>
-        <div><label>Foto (URL)</label><input v-model="form.foto" type="text" placeholder="https://…"/></div>
+
+        <!-- Especialidades: multi-select -->
+        <div>
+          <label>Especialidades</label>
+          <div>
+            <label v-for="e in specialties" :key="e.id" style="margin-right:10px">
+              <input type="checkbox" :value="e.id" v-model="form.especialidades" /> {{ e.nombre }}
+            </label>
+          </div>
+        </div>
+
+        <!-- Certificaciones: subform -->
+        <div style="width:100%">
+          <label>Certificaciones</label>
+          <div v-for="(c, idx) in form.certificaciones" :key="idx" style="border:1px solid #eee;padding:8px;margin-bottom:6px">
+            <div><strong>{{ c.nombre }}</strong> — {{ c.entidad_emisora }} ({{ c.fecha_emision }} → {{ c.fecha_vencimiento }})</div>
+            <button class="btn" type="button" @click="removeCertification(idx)">Eliminar</button>
+          </div>
+          <div class="row">
+            <input v-model="newCert.nombre" placeholder="Nombre cert" />
+            <input v-model="newCert.entidad_emisora" placeholder="Entidad" />
+            <input v-model="newCert.fecha_emision" type="date" />
+            <input v-model="newCert.fecha_vencimiento" type="date" />
+            <button class="btn" type="button" @click="addCertification">Agregar</button>
+          </div>
+        </div>
       </form>
       <template #footer>
         <button class="btn primary" @click="onSave">Guardar</button>
@@ -26,12 +51,14 @@
         </Toolbar>
       </template>
       <table class="table">
-        <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Apellido</th><th>Teléfono</th><th>Especialidades</th></tr></thead>
         <tbody>
           <tr v-for="row in items" :key="row.id" @click="fill(row)" style="cursor:pointer">
             <td>{{ row.nombre }}</td>
-              <td>{{ row.email }}</td>
-              <td>{{ row.telefono }}</td>
+            <td>{{ row.apellido }}</td>
+
+            <td>{{ row.telefono }}</td>
+            <td>{{ row.especialidades ? row.especialidades.map(e=>e.nombre).join(', ') : '-' }}</td>
           </tr>
         </tbody>
       </table>
@@ -43,14 +70,79 @@ import { ref, onMounted } from 'vue'
 import BaseCard from '../components/ui/BaseCard.vue'
 import Toolbar from '../components/ui/Toolbar.vue'
 import * as api from '../services/trainers.js'
+import * as specialtiesApi from '../services/specialties.js'
 const q = ref('')
 const items = ref([])
-const form = ref({})
+const specialties = ref([])
+const form = ref({ nombre: '', apellido: '', dni: undefined, telefono: '', email: '', especialidades: [], certificaciones: [] })
+const newCert = ref({ nombre: '', entidad_emisora: '', fecha_emision: '', fecha_vencimiento: '' })
+
 async function fetch(){ items.value = await api.listAll({ q: q.value }) }
 function clear(){ q.value=''; fetch() }
-function fill(row){ form.value = { ...row } }
-async function onSave(){ const created = await api.createOne({ ...form.value, id: undefined }); items.value.unshift(created); form.value = {} }
-async function onUpdate(){ if(!form.value.id) return; const upd = await api.updateOne(form.value.id, { ...form.value }); const i = items.value.findIndex(x=>x.id===upd.id); if(i>-1) items.value[i]=upd }
-async function onDelete(){ if(!form.value.id) return; await api.deleteOne(form.value.id); items.value = items.value.filter(x=>x.id!==form.value.id); form.value = {} }
-onMounted(fetch)
+function fill(row){
+  form.value = {
+    id: row.id,
+    nombre: row.nombre || '',
+    apellido: row.apellido || '',
+    dni: row.dni || undefined,
+    telefono: row.telefono || '',
+    email: row.email || '',
+    especialidades: row.especialidades ? row.especialidades.map(e=>e.id) : [],
+    certificaciones: row.certificaciones ? row.certificaciones.map(c=>({ nombre: c.nombre, entidad_emisora: c.entidad_emisora, fecha_emision: c.fecha_emision, fecha_vencimiento: c.fecha_vencimiento })) : []
+  }
+}
+
+async function loadSpecialties(){ specialties.value = await specialtiesApi.listAll() }
+
+function addCertification(){
+  if(!newCert.value.nombre) return alert('Ingrese nombre de la certificación')
+  form.value.certificaciones.push({ ...newCert.value })
+  newCert.value = { nombre: '', entidad_emisora: '', fecha_emision: '', fecha_vencimiento: '' }
+}
+
+function removeCertification(idx){ form.value.certificaciones.splice(idx,1) }
+
+async function onSave(){
+  // backend requiere nombre, apellido, dni, telefono, email
+  if(!form.value.nombre || !form.value.apellido || !form.value.dni || !form.value.telefono || !form.value.email) {
+    return alert('Complete los campos obligatorios: nombre, apellido, dni, teléfono y email')
+  }
+  const payload = {
+    nombre: form.value.nombre,
+    apellido: form.value.apellido,
+    dni: Number(form.value.dni),
+    telefono: form.value.telefono,
+    email: form.value.email,
+    especialidades: Array.isArray(form.value.especialidades) ? form.value.especialidades : [],
+    certificaciones: Array.isArray(form.value.certificaciones) ? form.value.certificaciones : []
+  }
+  const created = await api.createOne(payload)
+  const nueva = created.entrenador || created
+  // refrescar lista
+  await fetch()
+  form.value = { nombre: '', apellido: '', dni: undefined, telefono: '', email: '', especialidades: [], certificaciones: [] }
+}
+
+async function onUpdate(){
+  if(!form.value.dni) return alert('DNI es requerido para actualizar')
+  const payload = {
+    nombre: form.value.nombre,
+    apellido: form.value.apellido,
+    telefono: form.value.telefono,
+    email: form.value.email,
+    especialidades: Array.isArray(form.value.especialidades) ? form.value.especialidades : [],
+    certificaciones: Array.isArray(form.value.certificaciones) ? form.value.certificaciones : []
+  }
+  const upd = await api.updateOne(form.value.dni, payload)
+  await fetch()
+}
+
+async function onDelete(){
+  if(!form.value.dni) return alert('DNI es requerido para eliminar')
+  await api.deleteOne(form.value.dni)
+  await fetch()
+  form.value = { nombre: '', apellido: '', dni: undefined, telefono: '', email: '', especialidades: [], certificaciones: [] }
+}
+
+onMounted(()=>{ fetch(); loadSpecialties() })
 </script>

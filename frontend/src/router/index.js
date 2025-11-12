@@ -5,6 +5,7 @@ import MembresiasView from '../views/MembresiasView.vue'
 import ClasesView from '../views/ClasesView.vue'
 import ActividadesView from '../views/ActividadesView.vue'
 import EntrenadoresView from '../views/EntrenadoresView.vue'
+import EspecialidadesView from '../views/EspecialidadesView.vue'
 import IngresoGimnasioView from '../views/IngresoGimnasioView.vue'
 import PagosView from '../views/PagosView.vue'
 import ReporteIngresosView from '../views/ReporteIngresosView.vue'
@@ -18,6 +19,7 @@ const routes = [
   { path: '/clases', name: 'Clases', component: ClasesView, meta: { showInTabs: true, label: 'CU-03 Clases', order: 3 } },
   { path: '/actividades', name: 'Actividades', component: ActividadesView, meta: { showInTabs: true, label: 'CU-04 Actividades', order: 4 } },
   { path: '/entrenadores', name: 'Entrenadores', component: EntrenadoresView, meta: { showInTabs: true, label: 'CU-05 Entrenadores', order: 5 } },
+  { path: '/especialidades', name: 'Especialidades', component: EspecialidadesView, meta: { showInTabs: true, label: 'CU-05b Especialidades', order: 5.1 } },
   { path: '/ingreso-gimnasio', name: 'IngresoGimnasio', component: IngresoGimnasioView, meta: { showInTabs: true, label: 'CU-06 Ingreso', order: 6 } },
   { path: '/pagos', name: 'Pagos', component: PagosView, meta: { showInTabs: true, label: 'CU-07 Pagos', order: 7 } },
   { path: '/reportes/ingresos', name: 'ReporteIngresos', component: ReporteIngresosView, meta: { showInTabs: true, label: 'Reporte Ingresos', order: 8 } },
