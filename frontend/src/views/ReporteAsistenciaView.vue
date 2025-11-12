@@ -118,36 +118,3 @@ async function fetch() {
 onMounted(fetch)
 </script>
 
-<style scoped>
-.text-center {
-  text-align: center;
-  color: #666;
-}
-.inline {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th,
-td {
-  border-bottom: 1px solid #ddd;
-  padding: 0.5rem;
-}
-.btn {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.3rem;
-  cursor: pointer;
-}
-.btn:hover {
-  background-color: #0056b3;
-}
-</style>

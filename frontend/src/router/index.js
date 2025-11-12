@@ -12,6 +12,7 @@ import IngresoClasesView from '../views/IngresoClasesView.vue'
 import PagosView from '../views/PagosView.vue'
 import ReporteIngresosView from '../views/ReporteIngresosView.vue'
 import ReporteAsistenciaView from '../views/ReporteAsistenciaView.vue'
+import ReporteMembresiasView from '../views/ReporteMembresiasView.vue'
 
 
 const routes = [
@@ -27,6 +28,7 @@ const routes = [
   { path: '/ingreso-clases', name: 'IngresoClases', component: IngresoClasesView, meta: { showInTabs: true, label: 'CU-06b Ingreso Clases', order: 6.1 } },
   { path: '/pagos', name: 'Pagos', component: PagosView, meta: { showInTabs: true, label: 'CU-07 Pagos', order: 7 } },
   { path: '/reportes/ingresos', name: 'ReporteIngresos', component: ReporteIngresosView, meta: { showInTabs: true, label: 'Reporte Ingresos', order: 8 } },
+  { path: '/reportes/membresias', name: 'ReporteMembresias', component: ReporteMembresiasView, meta: { showInTabs: true, label: 'Reporte Membresías', order: 8.1 } },
   { path: '/reportes/asistencia', name: 'ReporteAsistencia', component: ReporteAsistenciaView, meta: { showInTabs: true, label: 'Reporte Asistencia', order: 9 } },
 ]
 
