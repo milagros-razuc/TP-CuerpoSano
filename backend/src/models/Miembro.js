@@ -47,7 +47,7 @@ const Miembro = sequelize.define('Miembro', {
     defaultValue: true
   },
   metodo_identificacion: {
-    type: DataTypes.ENUM('codigo_barras', 'huella'),
+    type: DataTypes.ENUM('codigo_barras', 'huella', 'manual'),
     allowNull: false
   },
   codigo_barra: {
