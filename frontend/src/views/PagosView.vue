@@ -159,7 +159,6 @@ function onTipoChange(){
   const sel = tipos.value.find(t=>t.id === form.id_tipo_membresia)
   if(sel){ form.monto = Number(sel.precio) }
 }
-
 async function onSave() {
   if (!form.id_miembro) {
     return Swal.fire({
@@ -203,6 +202,57 @@ async function onSave() {
       timer: 2000,
       showConfirmButton: false
     })
+
+  } catch (e) {
+    if (e.response?.status === 409) {
+      // ⚠️ Aquí capturamos el conflicto de membresía
+      const result = await Swal.fire({
+        title: 'Conflicto de membresía',
+        text: e.response.data.message,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, actualizar membresía',
+        cancelButtonText: 'Cancelar'
+      })
+      if (result.isConfirmed) {
+        // Volvemos a intentar el pago forzando el cambio
+        await onSaveWithForce()
+      }
+    } else {
+      console.error(e)
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al registrar',
+        text: e?.response?.data?.error || e.message
+      })
+    }
+  }
+}
+
+async function onSaveWithForce() {
+  try {
+    const r = await api.createOne({ ...form, forzarCambio: true })
+    const created = r.pago || r
+    const display = {
+      id: created.id,
+      fecha_pago: created.fecha_pago,
+      monto: created.monto,
+      estado_pago: created.estado_pago,
+      metodoPago: metodos.value.find(m => m.id === created.id_metodoPago) || null,
+      miembro: selected.value ? { id: selected.value.id, nombre: selected.value.nombre, apellido: selected.value.apellido, dni: selected.value.dni } : null
+    }
+    items.value.unshift(display)
+
+    selected.value = null
+    Object.assign(form, { id_miembro: null, id_tipo_membresia: null, id_metodoPago: null, monto: 0, observaciones: '' })
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Pago registrado',
+      text: 'El pago se registró correctamente y la membresía se actualizó.',
+      timer: 2000,
+      showConfirmButton: false
+    })
   } catch (e) {
     console.error(e)
     Swal.fire({
@@ -212,6 +262,7 @@ async function onSave() {
     })
   }
 }
+
 
 onMounted(fetch)
 onMounted(()=>{ loadTipoMembresias(); loadMetodosPago() })

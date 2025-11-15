@@ -2,9 +2,18 @@
   <div class="grid">
     <BaseCard>
       <template #header><h2>CU-04 — Actividades</h2></template>
+
       <form class="row" @submit.prevent="onSave">
-        <div><label>Nombre</label><input v-model="form.nombre" type="text" placeholder="Spinning" required/></div>
-        <div><label>Descripción</label><input v-model="form.descripcion" type="text" placeholder="Alta intensidad"/></div>
+        <div>
+          <label>Nombre</label>
+          <input v-model="form.nombre" type="text" placeholder="Spinning" required/>
+        </div>
+
+        <div>
+          <label>Descripción</label>
+          <input v-model="form.descripcion" type="text" placeholder="Alta intensidad"/>
+        </div>
+
         <div>
           <label>Nivel de dificultad</label>
           <select v-model="form.nivel_dificultad" required>
@@ -13,7 +22,17 @@
             <option value="alto">Alto</option>
           </select>
         </div>
+
+        <div>
+          <label>Clases asociadas</label>
+          <select v-model="form.id_clases" multiple>
+            <option v-for="c in clases" :key="c.id" :value="c.id">
+              {{ c.nombre }}
+            </option>
+          </select>
+        </div>
       </form>
+
       <template #footer>
         <button class="btn primary" @click="onSave">Guardar</button>
         <button v-if="form.id" class="btn" @click="onUpdate">Modificar</button>
@@ -24,21 +43,29 @@
     <BaseCard>
       <template #header>
         <h3>Listado</h3>
-          <Toolbar>
+        <Toolbar>
           <input v-model="q" type="text" placeholder="Buscar..." @input="fetch">
           <button class="btn" @click="clear">Limpiar</button>
           <button class="btn" @click="imprimir">Imprimir</button>
         </Toolbar>
       </template>
+
       <table class="table">
         <thead>
-          <tr><th>Nombre</th><th>Descripción</th><th>Nivel</th></tr>
+          <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Nivel</th>
+            <th>Clases</th>
+          </tr>
         </thead>
+
         <tbody>
           <tr v-for="row in items" :key="row.id" @click="fill(row)" style="cursor:pointer">
             <td>{{ row.nombre }}</td>
             <td>{{ row.descripcion }}</td>
             <td>{{ row.nivel_dificultad || '-' }}</td>
+            <td>{{ row.clases?.map(c => c.nombre).join(', ') || '-' }}</td>
           </tr>
         </tbody>
       </table>
@@ -55,21 +82,35 @@ import * as api from '../services/activities.js'
 
 const q = ref('')
 const items = ref([])
-const form = ref({ nombre: '', descripcion: '', nivel_dificultad: 'bajo' })
+const clases = ref([])
+
+const form = ref({
+  nombre: '',
+  descripcion: '',
+  nivel_dificultad: 'bajo',
+  id_clases: []
+})
 
 async function fetch() {
-  items.value = await api.listAll({ q: q.value })
+  const data = await api.listAll({ q: q.value })
+  items.value = data
+
+  // obtener clases aparte
+  clases.value = await api.listClases()
 }
+
 function clear() {
   q.value = ''
   fetch()
 }
+
 function fill(row) {
   form.value = {
     id: row.id,
     nombre: row.nombre ?? '',
     descripcion: row.descripcion ?? '',
-    nivel_dificultad: row.nivel_dificultad ?? 'bajo'
+    nivel_dificultad: row.nivel_dificultad ?? 'bajo',
+    id_clases: row.clases?.map(c => c.id) ?? []
   }
 }
 
@@ -81,18 +122,27 @@ async function onSave() {
 
   const created = await api.createOne({ ...form.value, id: undefined })
   const nueva = created.actividad || created
+
   items.value.unshift(nueva)
-  form.value = { nombre: '', descripcion: '', nivel_dificultad: 'bajo' }
+
+  form.value = { 
+    nombre: '',
+    descripcion: '',
+    nivel_dificultad: 'bajo',
+    id_clases: []
+  }
 
   Swal.fire('¡Guardado!', 'La actividad fue creada correctamente.', 'success')
 }
 
 async function onUpdate() {
   if (!form.value.id) return
+
   const upd = await api.updateOne(form.value.id, { ...form.value })
   const updated = upd.actividad || upd
-  const i = items.value.findIndex(x => x.id === updated.id)
-  if (i > -1) items.value[i] = updated
+
+  const idx = items.value.findIndex(x => x.id === updated.id)
+  if (idx > -1) items.value[idx] = updated
 
   Swal.fire('¡Actualizado!', 'Los datos de la actividad fueron modificados.', 'success')
 }
@@ -112,7 +162,13 @@ async function onDelete() {
   if (result.isConfirmed) {
     await api.deleteOne(form.value.id)
     items.value = items.value.filter(x => x.id !== form.value.id)
-    form.value = { nombre: '', descripcion: '', nivel_dificultad: 'bajo' }
+
+    form.value = { 
+      nombre: '', 
+      descripcion: '', 
+      nivel_dificultad: 'bajo',
+      id_clases: []
+    }
 
     Swal.fire('Eliminado', 'La actividad fue eliminada correctamente.', 'success')
   }
@@ -120,7 +176,6 @@ async function onDelete() {
 
 onMounted(fetch)
 
-// Imprimir solo la tabla de actividades filtradas
 function imprimir() {
   const rows = items.value || []
   const css = `
@@ -137,16 +192,17 @@ function imprimir() {
       <td>${escapeHtml(r.nombre ?? '')}</td>
       <td>${escapeHtml(r.descripcion ?? '')}</td>
       <td>${escapeHtml(r.nivel_dificultad ?? '')}</td>
+      <td>${escapeHtml(r.clases?.map(c => c.nombre).join(', ') ?? '')}</td>
     </tr>`).join('')
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Listado de Actividades</title>${css}</head><body>
     <h1>Listado de Actividades</h1>
     <table>
       <thead>
-        <tr><th>Nombre</th><th>Descripción</th><th>Nivel</th></tr>
+        <tr><th>Nombre</th><th>Descripción</th><th>Nivel</th><th>Clases</th></tr>
       </thead>
       <tbody>
-        ${htmlRows || '<tr><td colspan="3" style="text-align:center">No hay actividades</td></tr>'}
+        ${htmlRows || '<tr><td colspan="4" style="text-align:center">No hay actividades</td></tr>'}
       </tbody>
     </table>
   </body></html>`
@@ -159,7 +215,7 @@ function imprimir() {
   w.document.write(html)
   w.document.close()
   w.focus()
-  setTimeout(() => { w.print() }, 300)
+  setTimeout(() => w.print(), 300)
 }
 
 function escapeHtml(str) {
