@@ -1,3 +1,4 @@
+// DELETE /actividades/:id
 const { Actividad } = require('../../../models');
 
 module.exports = async (req, res) => {
@@ -5,15 +6,19 @@ module.exports = async (req, res) => {
     const { id } = req.params;
 
     const actividad = await Actividad.findByPk(id);
-    if (!actividad) {
-      return res.status(404).json({ error: 'Actividad no encontrada' });
-    }
+
+    if (!actividad)
+      return res.status(404).json({ error: "Actividad no encontrada" });
+
+    // Limpia relaciones en tabla pivote antes de borrar
+    await actividad.setClases([]);
 
     await actividad.destroy();
 
-    res.json({ message: 'Actividad eliminada correctamente' });
+    res.json({ message: "Actividad eliminada correctamente" });
+
   } catch (error) {
-    console.error('Error al eliminar actividad:', error);
-    res.status(500).json({ error: 'Error interno al eliminar la actividad' });
+    console.error("Error al eliminar actividad:", error);
+    res.status(500).json({ error: "Error interno al eliminar actividad" });
   }
 };
